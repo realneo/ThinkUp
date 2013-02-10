@@ -48,7 +48,7 @@ class TwitterOAuth {
 
         $FAUX_DATA_PATH = THINKUP_ROOT_PATH . $this->data_path;
         $url = str_replace('https://twitter.com/', '', $url);
-        $url = str_replace('https://api.twitter.com/1/', '', $url);
+        $url = str_replace('https://api.twitter.com/1.1/', '', $url);
         $url = str_replace('http://search.twitter.com/', '', $url);
         $url = str_replace('/', '_', $url);
         $url = str_replace('&', '-', $url);
@@ -72,15 +72,30 @@ class TwitterOAuth {
         }
     }
 
+    /**
+     * Set custom location of test data files.
+     * @param str $data_path
+     * @return void
+     */
     public function setDataPath($data_path) {
         $this->data_path = $data_path;
+        // print "data path is: " . $this->data_path . "\n";
+    }
+
+    /**
+     * Set subfolder location of test data files
+     * @param str $data_path_folder
+     * @return void
+     */
+    public function setDataPathFolder($data_path_folder) {
+        $this->data_path = $this->data_path.$data_path_folder;
         // print "data path is: " . $this->data_path . "\n";
     }
 
     public function http($url) {
         $FAUX_DATA_PATH = THINKUP_WEBAPP_PATH.'plugins/twitter/tests/testdata/';
         $url = str_replace('https://twitter.com/', '', $url);
-        $url = str_replace('https://api.twitter.com/1/', '', $url);
+        $url = str_replace('https://api.twitter.com/1.1/', '', $url);
         $url = str_replace('http://search.twitter.com/', '', $url);
         $url = str_replace('/', '_', $url);
         $url = str_replace('&', '-', $url);

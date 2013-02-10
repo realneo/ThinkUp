@@ -32,40 +32,6 @@
  */
 class TwitterPlugin extends Plugin implements CrawlerPlugin, DashboardPlugin, PostDetailPlugin {
 
-    /**
-     * Percentage of allocated API calls that each crawler function will use per run for non-authed instances.
-     * @var array
-     */
-    var $api_budget_allocation_noauth = array(
-        'fetchInstanceUserTweets' => array('percent' => 25),
-        'fetchAndAddTweetRepliedTo' => array('percent' => 25), // for fetchStrayRepliedToTweets
-        'fetchAndAddUser' => array('percent' => 25),
-        'fetchFriendTweetsAndFriends' => array('percent' => 25),
-        'fetchSearchResults' => array('percent' => 25),
-        'cleanUpFollows' => array('percent' => 25)
-    );
-
-    /**
-     * Percentage of allocated API calls that each crawler function will use per run for authed instances.
-     * @var array
-     */
-    var $api_budget_allocation_auth = array(
-        'fetchInstanceUserTweets' => array('percent' => 8),
-        'fetchAndAddTweetRepliedTo' => array('percent' => 8), // for fetchStrayRepliedToTweets
-        'fetchAndAddUser' => array('percent' => 8), // for fetchUnloadedFollowerDetails
-        'fetchFriendTweetsAndFriends' => array('percent' => 8),
-        'fetchInstanceUserMentions' => array('percent' => 8),
-        'fetchInstanceUserFriends' => array('percent' => 8),
-        'getFavsPage' => array('percent' => 8), // called from testCleanupMissedFavs|maintFavsFetch|archivingFavsFetch
-        'archivingFavsFetch' => array('percent' => 8), // called from fetchInstanceFavorites
-        'fetchInstanceUserFollowersByIDs' => array('percent' => 8), // for fetchInstanceUserFollowers
-        'fetchUserTimelineForRetweet' => array('percent' => 8), // fetchRetweetsOfInstanceUser->fetchStatusRetweets
-        'cleanUpMissedFavsUnFavs' => array('percent' => 8),
-        'cleanUpFollows' => array('percent' => 100), // last operation, give it high percentage to exhaust balance
-        'fetchInstanceUserGroups'  => array('percent' => 8),
-        'updateStaleGroupMemberships'  => array('percent' => 8),
-    );
-
     public function __construct($vals = null) {
         parent::__construct($vals);
         $this->folder_name = 'twitter';
@@ -106,70 +72,36 @@ class TwitterPlugin extends Plugin implements CrawlerPlugin, DashboardPlugin, Po
                 $logger->logUserSuccess("Starting to collect data for ".$instance->network_username." on Twitter.",
                 __METHOD__.','.__LINE__);
                 $tokens = $owner_instance_dao->getOAuthTokens($instance->id);
-                $noauth = true;
                 $num_twitter_errors =
                 isset($options['num_twitter_errors']) ? $options['num_twitter_errors']->option_value : null;
-                $max_api_calls_per_crawl =
-                isset($options['max_api_calls_per_crawl']) ? $options['max_api_calls_per_crawl']->option_value : 350;
+
                 if (isset($tokens['oauth_access_token']) && $tokens['oauth_access_token'] != ''
                 && isset($tokens['oauth_access_token_secret']) && $tokens['oauth_access_token_secret'] != '') {
-                    $noauth = false;
-                }
-                $api_calls_to_leave_unmade_per_minute =  isset($options['api_calls_to_leave_unmade_per_minute']) ?
-                $options['api_calls_to_leave_unmade_per_minute']->option_value : 2.0;
-
-                if ($noauth) {
-                    $api = new CrawlerTwitterAPIAccessorOAuth('NOAUTH', 'NOAUTH',
-                    $options['oauth_consumer_key']->option_value,
-                    $options['oauth_consumer_secret']->option_value,
-                    $api_calls_to_leave_unmade_per_minute, $options['archive_limit']->option_value,
-                    $num_twitter_errors, $max_api_calls_per_crawl);
-                } else {
                     $api = new CrawlerTwitterAPIAccessorOAuth($tokens['oauth_access_token'],
                     $tokens['oauth_access_token_secret'], $options['oauth_consumer_key']->option_value,
                     $options['oauth_consumer_secret']->option_value,
-                    $api_calls_to_leave_unmade_per_minute, $options['archive_limit']->option_value,
-                    $num_twitter_errors, $max_api_calls_per_crawl);
-                }
+                    $options['archive_limit']->option_value, $num_twitter_errors);
 
-                $twitter_crawler = new TwitterCrawler($instance, $api);
-                $dashboard_module_cacher = new DashboardModuleCacher($instance);
+                    $twitter_crawler = new TwitterCrawler($instance, $api);
+                    $dashboard_module_cacher = new DashboardModuleCacher($instance);
 
-                $api->init();
-
-                // budget our twitter calls
-                $call_limits = $this->budgetCrawlLimits($api->available_api_calls_for_crawler, $noauth);
-
-                $api->setCallerLimits($call_limits);
-
-                if ($api->available_api_calls_for_crawler > 0) {
+                    $api->init();
 
                     $instance_dao->updateLastRun($instance->id);
 
-                    // No auth for public Twitter users
                     $twitter_crawler->fetchInstanceUserTweets();
-
-                    if (!$noauth) {
-                        // Auth req'd, for calling user only
-                        $twitter_crawler->fetchInstanceUserMentions();
-                        $twitter_crawler->fetchInstanceUserFriends();
-                        $twitter_crawler->fetchInstanceFavorites();
-                        $twitter_crawler->fetchInstanceUserFollowers();
-                        $twitter_crawler->fetchInstanceUserGroups();
-                        $twitter_crawler->fetchRetweetsOfInstanceUser();
-                        $twitter_crawler->cleanUpMissedFavsUnFavs();
-                        $twitter_crawler->updateStaleGroupMemberships();
-                    }
-
+                    $twitter_crawler->fetchInstanceUserMentions();
+                    $twitter_crawler->fetchInstanceUserFriends();
+                    $twitter_crawler->fetchInstanceFavorites();
+                    $twitter_crawler->fetchInstanceUserFollowers();
+                    $twitter_crawler->fetchInstanceUserGroups();
+                    $twitter_crawler->fetchRetweetsOfInstanceUser();
+                    $twitter_crawler->cleanUpMissedFavsUnFavs();
+                    $twitter_crawler->updateStaleGroupMemberships();
                     $twitter_crawler->fetchStrayRepliedToTweets();
                     $twitter_crawler->fetchUnloadedFollowerDetails();
                     $twitter_crawler->cleanUpFollows();
                     $twitter_crawler->fetchFriendTweetsAndFriends();
-
-                    if ($noauth) {
-                        // No auth req'd
-                        $twitter_crawler->fetchSearchResults($instance->network_username);
-                    }
 
                     $dashboard_module_cacher->cacheDashboardModules();
 
@@ -178,8 +110,8 @@ class TwitterPlugin extends Plugin implements CrawlerPlugin, DashboardPlugin, Po
                         $instance_dao->save($instance, $twitter_crawler->user->post_count, $logger);
                     }
                     Reporter::reportVersion($instance);
-                    $logger->logUserSuccess("Finished collecting data for ".$instance->network_username." on Twitter.",
-                    __METHOD__.','.__LINE__);
+                    $logger->logUserSuccess("Finished collecting data for ".$instance->network_username.
+                    " on Twitter.", __METHOD__.','.__LINE__);
                 }
             } catch (Exception $e) {
                 $logger->logUserError("Error while crawling ".$instance->network_username." on Twitter: ".
@@ -575,21 +507,5 @@ class TwitterPlugin extends Plugin implements CrawlerPlugin, DashboardPlugin, Po
             }
         }
         return $menus;
-    }
-
-    /**
-     * Allocates api call counts to each crawler function
-     * @param int $max_api_calls_per_crawl
-     * @param bool $noauth
-     * @return @array Budget array
-     */
-    public function budgetCrawlLimits($max_api_calls_per_crawl, $noauth) {
-        $budget_array_config = $noauth ? $this->api_budget_allocation_noauth : $this->api_budget_allocation_auth;
-        $budget_array = array();
-        foreach($budget_array_config as $function_name => $value) {
-            $count = intval( $max_api_calls_per_crawl * ($value['percent'] * .01) );
-            $budget_array[$function_name] = array('count' => $count, 'remaining' => $count);
-        }
-        return $budget_array;
     }
 }

@@ -1,9 +1,9 @@
 <?php
 /**
  *
- * ThinkUp/webapp/plugins/twitter/model/class.TwitterOAuthThinkUp.php
+ * ThinkUp/webapp/_lib/model/exceptions/class.JSONDecoderException.php
  *
- * Copyright (c) 2009-2013 Gina Trapani
+ * Copyright (c) 2013 Gina Trapani
  *
  * LICENSE:
  *
@@ -19,16 +19,9 @@
  *
  * You should have received a copy of the GNU General Public License along with ThinkUp.  If not, see
  * <http://www.gnu.org/licenses/>.
- */
-/**
- * @author Gina Trapani <ginatrapani[at]gmail[dot]com>
+ *
+ * @author Gina Trapani
  * @license http://www.gnu.org/licenses/gpl.html
- * @copyright 2009-2013 Gina Trapani
+ * @copyright 2013  Gina Trapani
  */
-if (!class_exists('twitterOAuth')) {
-    Loader::definePathConstants();
-    require_once THINKUP_WEBAPP_PATH.'plugins/twitter/extlib/twitteroauth/twitteroauth.php';
-}
-
-class TwitterOAuthThinkUp extends TwitterOAuth {
-}
+class JSONDecoderException extends Exception {}

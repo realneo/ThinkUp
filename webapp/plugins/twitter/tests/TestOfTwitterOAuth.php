@@ -35,7 +35,7 @@ class TestOfTwitterOAuth extends UnitTestCase {
 
     public function testMakingAPICall() {
         $to = new TwitterOAuth('', '', '', '');
-        $result = $to->oAuthRequest('https://twitter.com/users/show/anildash.xml', 'GET', array());
+        $result = $to->oAuthRequest('https://twitter.com/users/show/anildash.json', 'GET', array());
         $this->assertPattern('/Anil Dash/', $result);
     }
 }
