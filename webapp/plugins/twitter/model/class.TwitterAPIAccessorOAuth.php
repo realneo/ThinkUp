@@ -165,7 +165,8 @@ class TwitterAPIAccessorOAuth {
             "delete_message"=>"/direct_messages/destroy/[id]",
             "post_message"=>"/direct_messages/new",
             "messages_sent"=>"/direct_messages/sent",
-            "favorites"=>"/favorites/[id]",
+            //"favorites"=>"/favorites/[id]",
+            "favorites"=>"/favorites/list",
             "create_favorite"=>"/favorites/create/[id]",
             "remove_favorite"=>"/favorites/destroy/[id]",
             "followers_ids"=>"/followers/ids",
@@ -178,8 +179,10 @@ class TwitterAPIAccessorOAuth {
             "turn_on_notification"=>"/notifications/follow/[id]",
             "turn_off_notification"=>"/notifications/leave/[id]",
             "delete_tweet"=>"/statuses/destroy/[id]",
-            "followers"=>"/statuses/followers",
-            "following"=>"/statuses/friends",
+            //"followers"=>"/statuses/followers",
+            "followers"=>"/followers/list",
+            //"following"=>"/statuses/friends",
+            "following"=>"/friends/list",
             "friends_timeline"=>"/statuses/friends_timeline",
             "public_timeline"=>"/statuses/public_timeline",
             "mentions"=>"/statuses/mentions",
@@ -189,7 +192,8 @@ class TwitterAPIAccessorOAuth {
             "show_user"=>"/users/show/[id]",
             "retweeted_by_me"=>"/statuses/retweeted_by_me",
             "retweets_of_me"=>"/statuses/retweets_of_me",
-            "retweeted_by"=>"/statuses/[id]/retweeted_by",
+            //"retweeted_by"=>"/statuses/[id]/retweeted_by",
+            "retweeted_by"=>"/statuses/retweets/[id]",
             "groups"=>"/lists/memberships",
             "check_group_member"=>"/lists/members/show",
         );
@@ -265,11 +269,11 @@ class TwitterAPIAccessorOAuth {
             'follower_count'=>$json_tweet->user->followers_count,
             'post_count'=>$json_tweet->user->statuses_count,
             'geo'=>$geo,
-            'place'=>(isset($json_tweet->place->full_name))?$json_tweet->place->full_name:''
+            'place'=>(isset($json_tweet->place->full_name))?$json_tweet->place->full_name:'',
+            'network'=>'twitter'
             );
 
-            //Handle retweeted status the way parsePostXML method does
-            //Get the API retweet count
+            //Get the API retweet count for original post
             if (isset($json_tweet->retweet_count) && !isset($json_tweet->retweeted_status)) {
                 // do this only for the original post (rt will have rt count too)
                 $retweet_count_api = $json_tweet->retweet_count;

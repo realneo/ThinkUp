@@ -101,7 +101,6 @@ class TwitterPlugin extends Plugin implements CrawlerPlugin, DashboardPlugin, Po
                     $twitter_crawler->fetchStrayRepliedToTweets();
                     $twitter_crawler->fetchUnloadedFollowerDetails();
                     $twitter_crawler->cleanUpFollows();
-                    $twitter_crawler->fetchFriendTweetsAndFriends();
 
                     $dashboard_module_cacher->cacheDashboardModules();
 

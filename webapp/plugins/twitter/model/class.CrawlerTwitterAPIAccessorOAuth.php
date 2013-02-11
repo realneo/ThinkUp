@@ -109,7 +109,7 @@ class CrawlerTwitterAPIAccessorOAuth extends TwitterAPIAccessorOAuth {
                 if ($status != 404 && $status != 403) {
                     $attempts++;
                     if ($this->total_errors_so_far >= $this->total_errors_to_tolerate) {
-                        $this->available = false;
+                        $continue = false;
                     } else {
                         $this->total_errors_so_far = $this->total_errors_so_far + 1;
                         $logger->logUserInfo('Total API errors so far: ' . $this->total_errors_so_far .

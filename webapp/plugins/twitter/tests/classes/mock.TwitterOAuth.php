@@ -64,7 +64,10 @@ class TwitterOAuth {
             } else {
                 $this->last_status_code = 404;
             }
-            return "";
+            if ($debug) {
+                echo "FILE NOT FOUND\n";
+            }
+            return '{"errors":[{"message":"Sorry, that page does not exist","code":34}]}';
         } else {
             $data = file_get_contents($FAUX_DATA_PATH.$url);
             $this->last_status_code = 200;

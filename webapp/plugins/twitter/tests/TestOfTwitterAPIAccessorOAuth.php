@@ -146,6 +146,31 @@ class TestOfTwitterAPIAccessorOAuth extends ThinkUpBasicUnitTestCase {
         $this->assertEqual($results["location"], "NYC: 40.739069,-73.987082");
         $this->assertEqual($results["place"], "Stuyvesant Town, New York");
         $this->assertEqual($results["geo"], "40.73410845 -73.97885982");
+        $this->assertEqual($results["retweet_count_api"], 11);
+    }
+
+    public function testParseJSONTweetRetweet() {
+        $api = new TwitterAPIAccessorOAuth($oauth_access_token='111', $oauth_access_token_secret='222',
+        $oauth_consumer_key=1234, $oauth_consumer_secret=1234, $num_twitter_errors=5, $log=true);
+
+        $data = file_get_contents(THINKUP_ROOT_PATH . $this->test_data_path.'json/retweet.json');
+
+        $results = $api->parseJSONTweet($data);
+
+        $this->debug(Utils::varDumpToString($results));
+        $this->assertEqual($results["post_text"],
+        "RT @errolmorris: Twitter never suggests that you might enjoy following no one. (Possibly an oversight.)");
+        $this->assertEqual($results["post_id"], "300464193944055808");
+        $this->assertEqual($results["user_id"], "2768241");
+        $this->assertEqual($results["user_name"], "amygdala");
+        $this->assertEqual($results["author_fullname"], "amy jo");
+        $this->assertEqual($results["in_retweet_of_post_id"], "297179577304875011");
+        $this->assertEqual($results["in_rt_of_user_id"], "14248315");
+        $this->assertEqual($results["retweet_count_api"], 0);
+        $this->assertEqual($results["retweeted_post"]["content"]["post_id"], "297179577304875011");
+        $this->assertEqual($results["retweeted_post"]["content"]["post_text"],
+        "Twitter never suggests that you might enjoy following no one. (Possibly an oversight.)");
+        $this->assertEqual($results["retweeted_post"]["content"]["retweet_count_api"], 114);
     }
 
     public function testParseJSONTweets() {
